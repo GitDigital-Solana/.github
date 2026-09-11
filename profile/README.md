@@ -475,6 +475,247 @@ All programs and clients return structured, human-readable errors. Never emit ba
 Licensed under the **MIT License**.  
 See `LICENSE`, `CODEOWNERS`, and `AUTHORS.md`.
 
+
+1. The scoring rubric (don't improvise this)
+
+"Completion" is meaningless unless it's defined. Use six measurable signals per repo. Each is binary or countable — no vibes.
+
+Signal Weight How to check
+Has description 5% gh repo view --json description
+Has topics/tags 5% gh repo view --json repositoryTopics
+Has LICENSE 10% file exists
+Has README > 500 bytes 10% file size
+Has tests (any test dir/files) 15% tests/, *.test.*, *_test.go, etc.
+Has CI (.github/workflows/*) 15% file exists
+Commits in last 90 days 20% gh api commit history
+Has release/tag OR deployed artifact 20% gh release list or program ID
+
+Total = 100%. That gives you a number you can defend, not a guess.
+
+Maturity tier (map score → label):
+
+· 0–24 → Concept
+· 25–49 → Prototype
+· 50–74 → Active
+· 75–89 → Production-Ready
+· 90–100 → Mainnet / Shipped
+
+---
+
+2. Progress bar formats that render on GitHub
+
+GitHub strips <progress> HTML in most contexts. Three options that actually work:
+
+Option A — Unicode blocks (works everywhere, no external service):
+
+```
+████████████████░░░░  80%
+████████░░░░░░░░░░░░  40%
+```
+
+Option B — Shields.io dynamic badge (cleanest, auto-updates):
+
+
+![progress](https://img.shields.io/badge/completion-80%25-brightgreen)
+
+
+Color thresholds: brightgreen ≥90, green ≥75, yellow ≥50, orange ≥25, red <25.
+
+Option C — Shields.io dynamic JSON endpoint (pulls live from a JSON file you host):
+
+```markdown
+![completion](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/GitDigital-Solana/.github/main/status/kyc-sdk.json)
+```
+
+This is the right long-term answer — the script writes JSON, the badge reads it, everything stays in sync.
+
+---
+
+3. The scanner script
+
+Save as scripts/scan-org.sh. Requires gh CLI authenticated with org read access.
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+ORG="GitDigital-Solana"
+OUT="status"
+mkdir -p "$OUT"
+
+repos=$(gh repo list "$ORG" --limit 200 --json name,description,repositoryTopics,isArchived,pushedAt,licenseInfo,primaryLanguage)
+
+echo "$repos" | jq -c '.[]' | while read -r repo; do
+  name=$(echo "$repo" | jq -r .name)
+  archived=$(echo "$repo" | jq -r .isArchived)
+  pushed=$(echo "$repo" | jq -r .pushedAt)
+  desc=$(echo "$repo" | jq -r '.description // ""')
+  topics=$(echo "$repo" | jq -r '.repositoryTopics | length')
+  license=$(echo "$repo" | jq -r '.licenseInfo.spdxId // ""')
+  lang=$(echo "$repo" | jq -r '.primaryLanguage.name // ""')
+
+  score=0
+
+  # 5% — description
+  [ -n "$desc" ] && [ "$desc" != "null" ] && score=$((score+5))
+
+  # 5% — topics
+  [ "$topics" -gt 0 ] && score=$((score+5))
+
+  # 10% — license
+  [ -n "$license" ] && [ "$license" != "null" ] && score=$((score+10))
+
+  # 10% — README > 500 bytes
+  readme_size=$(gh api "repos/$ORG/$name/contents/README.md" --jq '.size' 2>/dev/null || echo 0)
+  [ "$readme_size" -gt 500 ] && score=$((score+10))
+
+  # 15% — tests dir/file present
+  has_tests=$(gh api "repos/$ORG/$name/contents" --jq '.[].name' 2>/dev/null | grep -iE '^(tests?|spec)$|test|spec' | head -1 || true)
+  [ -n "$has_tests" ] && score=$((score+15))
+
+  # 15% — CI workflows
+  ci=$(gh api "repos/$ORG/$name/contents/.github/workflows" --jq 'length' 2>/dev/null || echo 0)
+  [ "$ci" -gt 0 ] && score=$((score+15))
+
+  # 20% — commit in last 90 days
+  if [ "$pushed" != "null" ]; then
+    days=$(( ( $(date +%s) - $(date -d "$pushed" +%s) ) / 86400 ))
+    [ "$days" -le 90 ] && score=$((score+20))
+  fi
+
+  # 20% — has a release or tag
+  rels=$(gh release list -R "$ORG/$name" --limit 1 --json tagName 2>/dev/null | jq 'length' || echo 0)
+  [ "$rels" -gt 0 ] && score=$((score+20))
+
+  # Status tier
+  if   [ "$score" -ge 90 ]; then tier="Mainnet"; color="brightgreen"
+  elif [ "$score" -ge 75 ]; then tier="Production-Ready"; color="green"
+  elif [ "$score" -ge 50 ]; then tier="Active"; color="yellow"
+  elif [ "$score" -ge 25 ]; then tier="Prototype"; color="orange"
+  else                            tier="Concept"; color="red"
+  fi
+
+  # Build unicode bar (20 blocks)
+  filled=$(( score / 5 ))
+  empty=$(( 20 - filled ))
+  bar="$(printf '█%.0s' $(seq 1 $filled 2>/dev/null))$(printf '░%.0s' $(seq 1 $empty 2>/dev/null))"
+
+  # Write JSON for live shield
+  jq -n \
+    --arg schemaVersion 1 --arg label "completion" \
+    --arg message "${score}% · ${tier}" --arg color "$color" \
+    '{schemaVersion:1,label:"completion",message:$message,color:$color}' \
+    > "$OUT/$name.json"
+
+  # Emit a markdown row
+  echo "| [\`$name\`](https://github.com/$ORG/$name) | $lang | \`$bar\` | **$score%** | $tier |"
+done > "$OUT/report.md"
+
+echo "Done. See $OUT/report.md and $OUT/*.json"
+```
+
+Run it, commit status/ to your .github repo, and you have both a static report and live badges.
+
+---
+
+4. The org profile README with progress bars
+
+Drop this into GitDigital-Solana/.github/profile/README.md. Replace the repo rows with the actual output of the script.
+
+```markdown
+# GitDigital Solana
+
+Open-source compliance, ZK, and RWA infrastructure for Solana.
+
+**87 repos · X active · Y production-ready** · [Full status report →](status/report.md)
+
+---
+
+## ⭐ Flagship
+
+| Repo | Lang | Progress | Score | Status |
+|------|------|----------|-------|--------|
+| [`solana-kyc-compliance-sdk`](https://github.com/GitDigital-Solana/solana-kyc-compliance-sdk) | Rust + TS | `████████████████░░░░` | **80%** | Production-Ready |
+| [`Aurora-zk-cryptography-framework`](https://github.com/GitDigital-Solana/Aurora-zk-cryptography-framework) | Rust | `██████████████░░░░░░` | **70%** | Active |
+| [`zk-Identity-masks`](https://github.com/GitDigital-Solana/zk-Identity-masks) | Zig + Mojo + TS | `██████████░░░░░░░░░░` | **50%** | Active |
+
+---
+
+## 📊 By Tier
+
+### 🟢 Production-Ready (75–89)
+<!-- generated rows here -->
+
+### 🟡 Active (50–74)
+<!-- generated rows here -->
+
+### 🟠 Prototype (25–49)
+<!-- generated rows here -->
+
+### 🔴 Concept (0–24)
+<!-- generated rows here -->
+
+### ⚫ Archived
+<!-- generated rows here -->
+
+---
+
+## 🚦 Live Status
+
+Each repo publishes a live completion badge:
+
+
+![completion](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/GitDigital-Solana/.github/main/status/solana-kyc-compliance-sdk.json)
+
+Full methodology: docs/completion-rubric.md
+
+
+
+---
+
+## 5. Per-repo README block
+
+Add this near the top of each repo's README, generated per-repo:
+
+
+![completion](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/GitDigital-Solana/.github/main/status/REPO.json)
+![last commit](https://img.shields.io/github/last-commit/GitDigital-Solana/REPO)
+![issues](https://img.shields.io/github/issues/GitDigital-Solana/REPO)
+![license](https://img.shields.io/github/license/GitDigital-Solana/REPO)
+
+**Completion:** `████████████████░░░░` 80% · **Tier:** Production-Ready
+
+<details>
+<summary>How this score is calculated</summary>
+
+| Signal | Weight | Status |
+|--------|--------|--------|
+| Description | 5% | ✅ |
+| Topics | 5% | ✅ |
+| LICENSE | 10% | ✅ |
+| README > 500B | 10% | ✅ |
+| Tests | 15% | ✅ |
+| CI workflows | 15% | ✅ |
+| Commit < 90d | 20% | ✅ |
+| Release/tag | 20% | ❌ |
+
+</details>
+```
+
+---
+
+6. Why this is the right approach
+
+· It's honest. Anyone can read the rubric and reproduce the number. No self-awarded "Enterprise Ready" badges.
+· It auto-updates. The script re-runs, JSON changes, shields.io re-renders. No manual maintenance.
+· It forces prioritization. When you see ████░░░░░░░░░░░░░░░░ on a repo you thought was done, you know what to fix.
+· It scales to 87 repos. A human can't track 87 repos honestly. A script can.
+· It kills the "Sponsor Ready / DD Ready" problem. You replace unearned marketing labels with computed status. Reviewers trust that.
+
+---
+
+
+
 ---
 
 **GitDigital Solana** — Compliance that lives on-chain.  
