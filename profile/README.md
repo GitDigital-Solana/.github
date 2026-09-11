@@ -324,6 +324,7 @@ Off-chain risk engines, FHE kernels, secure gateways, oracle adapters, and agent
 | **V** | Extremely fast compilation & runtime, memory-safe by default, tiny binaries | Fast off-chain verifiers, lightweight client-side tooling, high-frequency status polling against the Registry |
 | **Zig** | Manual memory control + strong safety, excellent C interop, no hidden control flow | Low-level FHE primitives, BPF-adjacent tooling, high-assurance crypto helpers, performance-critical side services |
 | **Nim** | Python-like productivity + C-level performance, powerful metaprogramming | Rapid development of secure services, policy engines, oracle adapters, internal tooling |
+| **Kotlin** | Strong static typing, null safety, coroutines, excellent JVM interop | Secure microservices, enterprise KYC/AML integration, concurrent Registry/oracle handling, multiplatform wallet logic |
 | **Carbon** *(experimental)* | C++ successor with better safety & modern generics | Future systems-level components that interoperate with existing C/C++ crypto or FHE libraries |
 
 **Guidance**
@@ -331,9 +332,33 @@ Off-chain risk engines, FHE kernels, secure gateways, oracle adapters, and agent
 - Use **TypeScript** as the primary client and orchestration language.
 - Prefer the languages above for off-chain risk engines, FHE nodes, secure gateways, and high-assurance modules.
 - Languages that reduce attack surface (Ballerina’s built-in security, V/Zig immutability & bounds checks, Mojo ownership) and lower cost (faster runtimes → fewer machines) are preferred.
-- A top-level **Makefile** unifies polyglot builds (Rust + TS + Julia/Mojo/Zig/etc.).
+- A top-level **Makefile** unifies polyglot builds (Rust + TS + Julia/Mojo/Zig/Kotlin/etc.).
 
 These languages make the compliance engines, risk scoring, FHE computations, and autonomous agent loops **faster, cheaper, and more secure**.
+
+### Planned `/lang` Directory Structure
+
+Language-specific interop lives inside the main repository for now (clean extraction into dedicated repos later if needed):
+
+```text
+lang/
+├── julia/          # AML risk engines, Monte-Carlo scoring, ZK parameter tuning
+├── mojo/           # FHE kernels, confidential risk scoring, sanctions screening
+├── v/              # Fast off-chain verifiers, lightweight tooling
+├── zig/            # Low-level FHE primitives, high-assurance crypto helpers
+├── ballerina/      # Secure API gateways, Travel-Rule, oracle ingestion
+├── nim/            # Policy engines, oracle adapters, internal services
+├── kotlin/         # Secure microservices, enterprise KYC/AML integration
+└── README.md       # Interop contracts, FFI/gRPC boundaries, build notes
+```
+
+Each language folder will contain:
+- Thin interop wrappers (calling the core Registry / SAS / Transfer Hook surface)
+- Minimal examples
+- Build instructions
+- Clear interface documentation
+
+This keeps the core focused while making the polyglot surface easy to discover and later extract.
 
 ---
 
