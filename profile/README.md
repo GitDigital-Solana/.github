@@ -4,6 +4,7 @@
 
 [![Solana](https://img.shields.io/badge/Solana-Aligned-9945FF?style=for-the-badge&logo=solana&logoColor=white)](https://solana.com)
 [![Token-2022](https://img.shields.io/badge/Token--2022-Transfer%20Hook-14F195?style=for-the-badge)](https://spl.solana.com/token-2022)
+[![Aurora ZK](https://img.shields.io/badge/Aurora-ZK_Cryptography-7B2CBF?style=for-the-badge)](https://github.com/GitDigital-Solana/Aurora-zk-cryptography-framework)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 [![Security](https://img.shields.io/badge/Security-Foundational-green?style=for-the-badge)](SECURITY.md)
 [![Docs](https://img.shields.io/badge/Docs-Live-orange?style=for-the-badge)](#-documentation)
@@ -33,7 +34,7 @@
 | **🏛️ Core** | [Home](#solana-kycaml-compliance-sdk) · [Ecosystem Overview](#-ecosystem-overview) · [Governance Model](#-governance-model) · [Tax-First Architecture](#-tax-first--compliance-first-architecture) · [Contributor Authority](#-contributor-authority) |
 | **⚙️ Enforcement** | [Compliance Registry](#-compliance-registry) · [SAS / KYC](#-solana-attestation-service--kyc) · [Transfer Hooks](#-token-2022-transfer-hooks) · [TypeScript SDK](#-typescript-sdk) |
 | **💳 Marketplace & RWA** | [Tiered Role-Access Marketplace](#-tiered-role-access-marketplace) · [Legal Agreements](#-legal--identity-verified-agreements) |
-| **🧬 Privacy** | [Tokenless Models](#-tokenless--zero-token-models) · [ZK Identity & Registry](#-zk-identity--zk-registry) · [ZK Age & FHE](#-zk-age-verification--fhe) |
+| **🧬 Privacy** | [Aurora ZK](#-privacy-layer) · [Tokenless Models](#-tokenless--zero-token-models) · [ZK Identity & Registry](#-zk-identity--zk-registry) · [ZK Age & FHE](#-zk-age-verification--fhe) |
 | **📚 Docs & Standards** | [Documentation](#-documentation) · [Badge Catalog](#-badge-catalog) · [Templates](#-templates--standards) |
 | **🧑‍💻 Authority** | [Authority Levels](#-authority-levels) · [Zero-Token Lead Teams](#-zero-token-lead-teams) |
 
@@ -98,6 +99,7 @@ It combines:
 - A versioned **Compliance Registry**
 - A **Tiered Role-Access Marketplace**
 - Modern privacy primitives: **tokenless models**, **ZK Identity**, **ZK Registry**, **ZK Age**, and **FHE**
+- **[Aurora ZK Cryptography Framework](https://github.com/GitDigital-Solana/Aurora-zk-cryptography-framework)** as the underlying cryptographic engine (Groth16, alt_bn128, Pedersen, ElGamal, Plonky2)
 
 Designed for RWA issuers, regulated DeFi, identity-gated dApps, and autonomous agent economies.
 
@@ -127,7 +129,7 @@ A multi-layer architecture built for clarity, continuous compliance, automation,
 | **1. Governance** | Authority levels, roles, dual-approval rules, policy |
 | **2. Enforcement** | Compliance Registry · Transfer Hooks · SAS · Permanent Delegate |
 | **3. Marketplace & RWA** | Tiered Role-Access Marketplace · Credit patterns · Legal Agreements |
-| **4. Privacy** | Tokenless models · ZK Identity / Registry / Age · FHE hybrid |
+| **4. Privacy** | Tokenless models · ZK Identity / Registry / Age · FHE hybrid · **Aurora ZK** cryptographic engine |
 | **5. Documentation** | Templates · Wizard · Badge Catalog · Audit packets |
 
 ---
@@ -256,6 +258,23 @@ Supports both token-gated and pure credential-gated (tokenless) experiences.
 
 ## 🧬 Privacy Layer
 
+Powered by the **[Aurora ZK Cryptography Framework](https://github.com/GitDigital-Solana/Aurora-zk-cryptography-framework)** — the cryptographic engine for zero-knowledge proofs, commitments, and on-chain verification on Solana.
+
+### Aurora ZK (Core Cryptographic Dependency)
+
+Aurora provides the production-grade primitives this SDK relies on:
+
+| Aurora Capability | Used by Compliance SDK for |
+|-------------------|----------------------------|
+| Optimized Groth16 verifier (low CU) | On-chain verification of ZK Identity, ZK Registry membership, and ZK Age proofs |
+| alt_bn128 + BLS12-381 field arithmetic | Core elliptic-curve operations for all proofs |
+| Pedersen commitments & ElGamal | Confidential attributes, range proofs, selective disclosure |
+| Plonky2 (experimental) | Future recursive / cheaper proofs |
+| Token-2022 + ZK Compression compatibility | Native fit with Transfer Hooks and compressed state |
+| Off-chain prover + on-chain notary pattern | Heavy math runs off-chain; lightweight attestation is recorded on-chain |
+
+> Aurora is treated as a first-class sister project. This SDK does not re-implement the same cryptographic primitives.
+
 ### Tokenless (Zero-Token) Models
 Access control without requiring any SPL / Token-2022 token. Users prove attributes (KYC status, age, jurisdiction, accreditation, role) via ZK credentials or SAS attestations.
 
@@ -263,10 +282,11 @@ Access control without requiring any SPL / Token-2022 token. Users prove attribu
 - Portable zero-knowledge identity credentials with selective disclosure
 - Merkle-root / commitment-based registry
 - Users prove membership or policy satisfaction + nullifier without revealing clear-text status
+- Proofs generated and verified via Aurora
 
 ### ZK Age Verification & FHE
 - Circuits that prove age ≥ threshold (or range) without revealing date of birth
-- Fully Homomorphic Encryption for computation on encrypted compliance data (risk scores, attributes) — hybrid off-chain FHE + on-chain ZK proof of correct computation
+- Fully Homomorphic Encryption for computation on encrypted compliance data (risk scores, attributes) — hybrid off-chain FHE + on-chain ZK proof of correct computation (Aurora + FHE layer)
 
 Compliance remains foundational whether the path is clear-text or zero-knowledge.
 
@@ -330,6 +350,7 @@ Off-chain risk engines, FHE kernels, secure gateways, oracle adapters, and agent
 **Guidance**
 - Keep **on-chain** code in Rust + Anchor.
 - Use **TypeScript** as the primary client and orchestration language.
+- Use **[Aurora ZK](https://github.com/GitDigital-Solana/Aurora-zk-cryptography-framework)** for all zero-knowledge proof generation and on-chain verification primitives.
 - Prefer the languages above for off-chain risk engines, FHE nodes, secure gateways, and high-assurance modules.
 - Languages that reduce attack surface (Ballerina’s built-in security, V/Zig immutability & bounds checks, Mojo ownership) and lower cost (faster runtimes → fewer machines) are preferred.
 - A top-level **Makefile** unifies polyglot builds (Rust + TS + Julia/Mojo/Zig/Kotlin/etc.).
@@ -408,6 +429,7 @@ All programs and clients return structured, human-readable errors. Never emit ba
 - **Badge Catalog** — official GitDigital Solana badges across Governance, Automation, Lending/RWA, Documentation, Privacy, Solana Signals, and Readiness
 
 ### Related References
+- **[Aurora ZK Cryptography Framework](https://github.com/GitDigital-Solana/Aurora-zk-cryptography-framework)** — Core cryptographic engine (Groth16, alt_bn128, Pedersen, ElGamal, Plonky2)
 - [Compliance Registry Design](references/compliance-registry.md)
 - [Tiered Marketplace](references/tiered-marketplace.md)
 - [Privacy / ZK / FHE](references/privacy-zk-fhe.md)
@@ -425,7 +447,7 @@ All programs and clients return structured, human-readable errors. Never emit ba
 | Governance | Governance · Authority · Compliance |
 | Enforcement | Registry · Transfer Hook · SAS · KYC |
 | Marketplace / RWA | Credit Authority · Loaner Ledger · Marketplace |
-| Privacy | ZK · FHE · Tokenless · Selective Disclosure |
+| Privacy | ZK · FHE · Tokenless · Selective Disclosure · Aurora ZK |
 | Documentation | Docs · Templates · Wizard · Badge Catalog |
 | Solana Signals | Solana Aligned · Grant Candidate · Security Ready |
 | Readiness | Sponsor Ready · DD Ready · Enterprise Ready |
