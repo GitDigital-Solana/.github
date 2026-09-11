@@ -1,4 +1,3 @@
-## Hi there 👋
 # Solana KYC/AML Compliance SDK
 
 **GitDigital Solana** · Open-source compliance layer for Real-World Assets, regulated DeFi, and identity-gated applications on Solana.
@@ -13,6 +12,17 @@
 <script src="https://liberapay.com/GitDigital_liberapay/widgets/button.js"></script>
 <a href="https://liberapay.com/GitDigital_liberapay/donate"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></a>
 <a href="https://ko-fi.com/gitdigital"><img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Buy Me a Coffee at ko-fi.com"></a>
+
+<p align="center">
+  <img src="assets/polar-checkout-qr-verified-badge.jpg" alt="Polar Checkout QR Verified" width="140">
+  &nbsp;&nbsp;&nbsp;
+  <img src="assets/gitdigital-autonomous-agent-economies.png" alt="GitDigital Autonomous Agent Economies" width="280">
+</p>
+
+<p align="center">
+  <strong>🔐 Cryptographic Verification Banners</strong><br>
+  <em>Polar Checkout QR Verified · Autonomous Agent Economies (GitDigital-aligned)</em>
+</p>
 
 ---
 
@@ -227,14 +237,20 @@ Continuous on-chain enforcement:
 
 🏷️ `Marketplace` · `Roles` · `Lending` · `Compliance`
 
+<p align="center">
+  <img src="assets/polar-checkout-qr-verified-badge.jpg" alt="Polar Checkout QR Verified" width="120">
+</p>
+
 Listings, purchases, and role grants are gated by:
 
 - Compliance Registry status
 - Tier / role checks
 - Optional zero-token proofs
-- Polar MoR / verified checkout flows
+- **Polar MoR / verified checkout flows** (QR-driven, tax-compliant, identity-gated)
 
 Supports both token-gated and pure credential-gated (tokenless) experiences.
+
+> **Polar Checkout QR Verified** — Official cryptographic trust signal for autonomous commerce and verified payments.
 
 ---
 
@@ -289,6 +305,35 @@ if (!status.isCompliant) {
   throw new Error("Wallet not registered or attestation expired");
 }
 ```
+
+---
+
+## 🛠️ Preferred Stack & Multi-Language Support
+
+🏷️ `Performance` · `Security` · `Polyglot` · `MLOps`
+
+On-chain programs stay in **Rust + Anchor** (Token-2022, Transfer Hooks, Registry).  
+Off-chain risk engines, FHE kernels, secure gateways, oracle adapters, and agent runtimes use the languages below for speed, safety, and lower operational cost.
+
+| Language | Primary Strengths | How it helps this SDK |
+|----------|-------------------|-----------------------|
+| **TypeScript** | Ubiquitous Solana client ecosystem, strong typing, excellent DX | Primary client SDK, dApp front-ends, Registry/SAS orchestration, type-safe policy engines |
+| **Julia** | Extreme numerical / scientific performance (LLVM), excellent for ML & Monte-Carlo | Off-chain AML risk engines, continuous scoring, portfolio/jurisdiction risk aggregation, scientific ZK parameter tuning |
+| **Mojo** | Python-like ergonomics + C++/Rust-level speed, MLIR-based, SIMD/GPU targeting | High-throughput FHE kernels, confidential risk scoring, AI-augmented sanctions screening, deterministic financial compute |
+| **Ballerina** | Cloud-native, integration-first, first-class security (mTLS, JWT, OAuth2) | Secure API gateways between KYC providers ↔ SAS ↔ Compliance Registry, Travel-Rule messaging, oracle ingestion |
+| **V** | Extremely fast compilation & runtime, memory-safe by default, tiny binaries | Fast off-chain verifiers, lightweight client-side tooling, high-frequency status polling against the Registry |
+| **Zig** | Manual memory control + strong safety, excellent C interop, no hidden control flow | Low-level FHE primitives, BPF-adjacent tooling, high-assurance crypto helpers, performance-critical side services |
+| **Nim** | Python-like productivity + C-level performance, powerful metaprogramming | Rapid development of secure services, policy engines, oracle adapters, internal tooling |
+| **Carbon** *(experimental)* | C++ successor with better safety & modern generics | Future systems-level components that interoperate with existing C/C++ crypto or FHE libraries |
+
+**Guidance**
+- Keep **on-chain** code in Rust + Anchor.
+- Use **TypeScript** as the primary client and orchestration language.
+- Prefer the languages above for off-chain risk engines, FHE nodes, secure gateways, and high-assurance modules.
+- Languages that reduce attack surface (Ballerina’s built-in security, V/Zig immutability & bounds checks, Mojo ownership) and lower cost (faster runtimes → fewer machines) are preferred.
+- A top-level **Makefile** unifies polyglot builds (Rust + TS + Julia/Mojo/Zig/etc.).
+
+These languages make the compliance engines, risk scoring, FHE computations, and autonomous agent loops **faster, cheaper, and more secure**.
 
 ---
 
@@ -372,7 +417,7 @@ All programs and clients return structured, human-readable errors. Never emit ba
 
 ## 🧾 License & Ownership
 
-**Author & Code Owner:** Rickcreator1987 & Rickcreator87 (Rickcreator1987) & (@Rickcreator87)
+**Author & Code Owner:** Rickcreator87 (@Rickcreator87)
 
 Licensed under the **MIT License**.  
 See `LICENSE`, `CODEOWNERS`, and `AUTHORS.md`.
@@ -381,14 +426,3 @@ See `LICENSE`, `CODEOWNERS`, and `AUTHORS.md`.
 
 **GitDigital Solana** — Compliance that lives on-chain.  
 Transparent when you need it. Zero-knowledge when you require it.
-
-<!--
-
-**Here are some ideas to get you started:**
-
-🙋‍♀️ A short introduction - what is your organization all about?
-🌈 Contribution guidelines - how can the community get involved?
-👩‍💻 Useful resources - where can the community find your docs? Is there anything else the community should know?
-🍿 Fun facts - what does your team eat for breakfast?
-🧙 Remember, you can do mighty things with the power of [Markdown](https://docs.github.com/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax)
--->
