@@ -372,7 +372,7 @@ All programs and clients return structured, human-readable errors. Never emit ba
 
 ## 🧾 License & Ownership
 
-**Author & Code Owner:** Rickcreator87 (@Rickcreator87)
+**Author & Code Owner:** Rickcreator1987 & Rickcreator87 (Rickcreator1987) & (@Rickcreator87)
 
 Licensed under the **MIT License**.  
 See `LICENSE`, `CODEOWNERS`, and `AUTHORS.md`.
